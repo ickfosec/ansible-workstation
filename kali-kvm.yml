@@ -1,0 +1,112 @@
+---
+- name: Provision Kali KVM
+  hosts: localhost
+  become: yes
+  vars:
+    # CHANGE THESE BASED ON YOUR SYSTEM AND PREFERENCES
+    kvm_memory: 32768  # Default RAM in MB (32 GB)
+    kvm_cpu_cores: 8   # Default number of CPU cores
+    kvm_disk_size: 60G # Default disk size
+    kvm_storage_path: ~/kvm_storage/kali-linux.qcow2  # Default storage path
+
+  tasks:
+    - name: Installing required packages (Debian)
+      when: ansible_facts['os_family'] == 'Debian'
+      apt:
+        name:
+          - qemu-kvm
+          - libvirt-daemon-system
+          - virt-manager
+          - cloud-utils
+          - libvirt-clients
+        state: present
+        update_cache: yes
+
+    - name: Installing required packages (Arch)
+      when: ansible_facts['os_family'] == 'Archlinux'
+      pacman:
+        name:
+          - qemu
+          - libvirt
+          - virt-manager
+          - cloud-utils
+        state: present
+        update_cache: yes
+    
+    - name: Starting libvirtd service (Arch)
+      when: ansible_facts['os_family'] == 'Archlinux'
+      systemd:
+        name: libvirtd
+        state: started
+        enabled: yes
+
+    - name: Downloading Kali Linux ISO
+      get_url:
+        url: "https://cdimage.kali.org/kali-2024.4/kali-linux-2024.4-installer-amd64.iso"
+        dest: "/tmp/kali-linux.iso"
+        mode: '0644'
+
+    - name: Adding current user to the libvirt group (YOU MAY NEED TO LOG OUT TO APPLY)
+      user:
+        name: "{{ ansible_env.USER }}"
+        groups: libvirt
+        append: yes
+      become: yes
+
+    - name: Creating KVM
+      command: >
+        virt-install
+        --name kali-linux
+        --ram {{ kvm_memory }}
+        --vcpus {{ kvm_cpu_cores }}
+        --disk path={{ kvm_storage_path }},size={{ kvm_disk_size }}
+        --os-variant debian12
+        --network network=default
+        --cdrom /tmp/kali-linux.iso
+        --graphics vnc,listen=0.0.0.0,port=5900
+        --console pty,target_type=serial
+        --extra-args "console=ttyS0,115200n8 serial"
+        --noautoconsole
+      async: 600
+      poll: 0
+
+    - name: Waiting for the VM to start via virtio console
+      command: virsh console kali-linux
+      async: 600
+      poll: 0
+
+    - name: Generating startup script for first boot
+      copy:
+        content: |
+          #!/bin/bash
+          # Provisioned by ickfosec's ansible-workstation scripts: https://github.com/ickfosec/ansible-workstation
+          
+          # Update packages
+          apt-get update && apt-get upgrade -y
+          
+          # Install exiftool and autorecon
+          apt-get install -y exiftool autorecon
+          
+          # Create screenshots folder in shared directory
+          mkdir -p /mnt/shared/screenshots
+          
+          # Set the motd message
+          echo "Provisioned by ickfosec's ansible-workstation scripts" > /etc/motd
+          
+          # Configure file sharing path
+          mount -t virtiofs shared_folder /mnt/shared
+        dest: /etc/rc.local
+        mode: '0755'
+
+    - name: Ensure rc.local is executable
+      file:
+        path: /etc/rc.local
+        mode: '0755'
+
+    - name: Starting the VM
+      command: virsh start kali-linux
+
+    - name: Cleaning up the ISO file
+      file:
+        path: /tmp/kali-linux.iso
+        state: absent
