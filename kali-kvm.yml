@@ -54,26 +54,19 @@
       become: yes
 
     - name: Creating KVM
-      command: >
-        virt-install
-        --name kali-linux
-        --ram {{ kvm_memory }}
-        --vcpus {{ kvm_cpu_cores }}
-        --disk path={{ kvm_storage_path }},size={{ kvm_disk_size }}
-        --os-variant debian12
-        --network network=default
-        --cdrom /tmp/kali-linux.iso
-        --graphics vnc,listen=0.0.0.0,port=5900
-        --console pty,target_type=serial
-        --extra-args "console=ttyS0,115200n8 serial"
-        --noautoconsole
+      command: virt-install --name kali-linux --ram {{ kvm_memory }} --vcpus {{ kvm_cpu_cores }} --disk path={{ kvm_storage_path }},size={{ kvm_disk_size }} --os-variant debian12 --network network=default --cdrom /tmp/kali-linux.iso --graphics vnc,listen=0.0.0.0,port=5900 --console pty,target_type=serial --extra-args "console=ttyS0,115200n8 serial" --noautoconsole
+      async: 600
+      poll: 5
+
+    - name: Starting the VM
+      command: virsh start kali-linux
       async: 600
       poll: 0
 
     - name: Waiting for the VM to start via virtio console
       command: virsh console kali-linux
       async: 600
-      poll: 0
+      poll: 5
 
     - name: Generating startup script for first boot
       copy:
@@ -102,9 +95,6 @@
       file:
         path: /etc/rc.local
         mode: '0755'
-
-    - name: Starting the VM
-      command: virsh start kali-linux
 
     - name: Cleaning up the ISO file
       file:

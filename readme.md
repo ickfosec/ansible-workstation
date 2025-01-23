@@ -7,6 +7,7 @@ A collection of Ansible scripts I use for setting up different environments on m
 ## Usage
 
 1. Clone this repository locally
+2. Make `setup.sh` executable with `chmod +x setup.sh`
 2. Run `setup.sh` to get Ansible and a Python venv setup. 
 3. The script will prompt you to run one of the included Ansible scripts. Choose a script.
 4. Let Ansible do its thing.
