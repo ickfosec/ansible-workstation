@@ -1,5 +1,5 @@
 ---
-- name: Provision Kali KVM
+- name: Provision Kali KVM for CTF
   hosts: localhost
   become: yes
   vars:
@@ -54,7 +54,7 @@
       become: yes
 
     - name: Creating KVM
-      command: virt-install --name kali-linux --ram {{ kvm_memory }} --vcpus {{ kvm_cpu_cores }} --disk path={{ kvm_storage_path }},size={{ kvm_disk_size }} --os-variant debian12 --network network=default --cdrom /tmp/kali-linux.iso --graphics vnc,listen=0.0.0.0,port=5900 --console pty,target_type=serial --extra-args "console=ttyS0,115200n8 serial" --noautoconsole
+      command: virt-install --name kali-linux --ram {{ kvm_memory }} --vcpus {{ kvm_cpu_cores }} --disk path={{ kvm_storage_path }},size={{ kvm_disk_size }} --os-variant debian12 --network network=default --location= /tmp/kali-linux.iso --graphics vnc,listen=0.0.0.0,port=5900 --console pty,target_type=serial --extra-args "console=ttyS0,115200n8 serial" --noautoconsole
       async: 600
       poll: 5
 

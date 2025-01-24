@@ -56,7 +56,7 @@ install_ansible() {
 # List and run Ansible scripts
 run_ansible_playbook() {
     echo "Searching for Ansible playbooks..."
-    playbooks=( *.yml )
+    playbooks=(*/*.yml )
     if [ ${#playbooks[@]} -eq 0 ]; then
         echo "❌ No Ansible playbooks found. Exiting."
         exit 1

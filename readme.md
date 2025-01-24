@@ -22,8 +22,8 @@ This will provision a custom Kali KVM for use with [virt-manager](https://virt-m
 Arch & Debian supported.
 
 **To-do**
-- [ ] Dynamically grab the latest stable Kali iso
-- [ ] Include additional packages
+- [ ] Dynamically grab the latest stable Kali build
+- [ ] Expand included packages
 - [ ] Mac & Windows compatibility
 - [ ] Proper testing pipeline
  
