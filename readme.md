@@ -23,8 +23,9 @@ Arch & Debian supported.
 
 **To-do**
 - [ ] Dynamically grab the latest stable Kali build
+- [ ] Add Mac & Windows host compatibility
 - [ ] Expand included packages
-- [ ] Mac & Windows compatibility
+- [ ] Update searchsploit
 - [ ] Proper testing pipeline
  
 **Known Issues**
